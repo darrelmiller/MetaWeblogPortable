@@ -11,10 +11,12 @@ namespace MetaWeblog.Portable
 
         public string AppKey = "0123456789ABCDEF";
         public BlogConnectionInfo BlogConnectionInfo;
+        private Service _service;
 
         public Client(BlogConnectionInfo connectionInfo)
         {
             this.BlogConnectionInfo = connectionInfo;
+            _service = new Service(BlogConnectionInfo.MetaWeblogUrl);
         }
 
         /// <summary>
@@ -24,7 +26,7 @@ namespace MetaWeblog.Portable
         /// <returns></returns>
         public async Task<List<PostInfo>> GetRecentPosts(int numposts)
         {
-            var service = new Service(BlogConnectionInfo.MetaWeblogUrl);
+            
 
             var method = new MethodCall("metaWeblog.getRecentPosts");
             method.Parameters.Add(BlogConnectionInfo.BlogId);
@@ -32,7 +34,7 @@ namespace MetaWeblog.Portable
             method.Parameters.Add(BlogConnectionInfo.Password);
             method.Parameters.Add(numposts);
 
-            var response = await service.Execute(method);
+            var response = await _service.Execute(method);
 
             var param = response.Parameters[0];
             var array = (Array)param;
@@ -61,8 +63,7 @@ namespace MetaWeblog.Portable
         /// <returns></returns>
         public async Task<MediaObjectInfo> NewMediaObject(string name, string type, byte[] bits)
         {
-            var service = new Service(BlogConnectionInfo.MetaWeblogUrl);
-
+            
             var inputStruct = new Struct();
             inputStruct["name"] = new StringValue(name);
             inputStruct["type"] = new StringValue(type);
@@ -74,7 +75,7 @@ namespace MetaWeblog.Portable
             method.Parameters.Add(BlogConnectionInfo.Password);
             method.Parameters.Add(inputStruct);
 
-            var response = await service.Execute(method);
+            var response = await _service.Execute(method);
             var param = response.Parameters[0];
             var _struct = (Struct)param;
 
@@ -90,14 +91,13 @@ namespace MetaWeblog.Portable
         /// <returns></returns>
         public async Task<PostInfo> GetPost(string postid)
         {
-            var service = new Service(this.BlogConnectionInfo.MetaWeblogUrl);
-
+            
             var method = new MethodCall("metaWeblog.getPost");
             method.Parameters.Add(postid); // notice this is the postid, not the blogid
             method.Parameters.Add(BlogConnectionInfo.Username);
             method.Parameters.Add(BlogConnectionInfo.Password);
 
-            var response = await service.Execute(method);
+            var response = await _service.Execute(method);
             var param = response.Parameters[0];
             var _struct = (Struct)param;
 
@@ -186,7 +186,6 @@ namespace MetaWeblog.Portable
         /// <returns></returns>
         public async Task<bool> DeletePost(string postid)
         {
-            var service = new Service(BlogConnectionInfo.MetaWeblogUrl);
 
             var method = new MethodCall("blogger.deletePost");
             method.Parameters.Add(AppKey);
@@ -195,7 +194,7 @@ namespace MetaWeblog.Portable
             method.Parameters.Add(BlogConnectionInfo.Password);
             method.Parameters.Add(true);
 
-            var response = await service.Execute(method);
+            var response = await _service.Execute(method);
             var param = response.Parameters[0];
             var success = (BooleanValue)param;
 
@@ -208,14 +207,13 @@ namespace MetaWeblog.Portable
         /// <returns></returns>
         public async Task<List<BlogInfo>> GetUsersBlogs()
         {
-            var service = new Service(BlogConnectionInfo.MetaWeblogUrl);
-
+         
             var method = new MethodCall("blogger.getUsersBlogs");
             method.Parameters.Add(AppKey);
             method.Parameters.Add(BlogConnectionInfo.Username);
             method.Parameters.Add(BlogConnectionInfo.Password);
 
-            var response = await service.Execute(method);
+            var response = await _service.Execute(method);
             var list = (Array)response.Parameters[0];
 
             var blogs = new List<BlogInfo>(list.Count);
@@ -252,7 +250,6 @@ namespace MetaWeblog.Portable
                 _categories.AddRange(categories.Select(c => new StringValue(c)));
             }
 
-            var service = new Service(BlogConnectionInfo.MetaWeblogUrl);
             var struct_ = new Struct();
             struct_["title"] = new StringValue(title);
             struct_["description"] = new StringValue(description);
@@ -265,7 +262,7 @@ namespace MetaWeblog.Portable
             method.Parameters.Add(struct_);
             method.Parameters.Add(publish);
 
-            var response = await service.Execute(method);
+            var response = await _service.Execute(method);
             var param = response.Parameters[0];
             var success = (BooleanValue)param;
 
@@ -278,14 +275,13 @@ namespace MetaWeblog.Portable
         /// <returns></returns>
         public async Task<List<CategoryInfo>> GetCategories()
         {
-            var service = new Service(BlogConnectionInfo.MetaWeblogUrl);
 
             var method = new MethodCall("metaWeblog.getCategories");
             method.Parameters.Add(BlogConnectionInfo.BlogId);
             method.Parameters.Add(BlogConnectionInfo.Username);
             method.Parameters.Add(BlogConnectionInfo.Password);
 
-            var response = await service.Execute(method);
+            var response = await _service.Execute(method);
 
             var param = response.Parameters[0];
             var array = (Array)param;
@@ -307,14 +303,14 @@ namespace MetaWeblog.Portable
         /// <returns></returns>
         public async Task<UserInfo> GetUserInfo()
         {
-            var service = new Service(BlogConnectionInfo.MetaWeblogUrl);
+
 
             var method = new MethodCall("blogger.getUserInfo");
             method.Parameters.Add(AppKey);
             method.Parameters.Add(BlogConnectionInfo.Username);
             method.Parameters.Add(BlogConnectionInfo.Password);
 
-            var response = await service.Execute(method);
+            var response = await _service.Execute(method);
             var param = response.Parameters[0];
             var struct_ = (Struct)param;
             var item = new UserInfo
